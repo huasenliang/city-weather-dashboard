@@ -1,0 +1,5 @@
+/cache/
+/server.log
+__pycache__/
+*.pyc
+*.bak

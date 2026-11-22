@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>城市天气数据工作台 · 现场抓取</title>
+<script>
+  /* 首屏前定主题与语言，避免闪白 */
+  (function () {
+    try {
+      var t = localStorage.getItem('wb-theme');
+      if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.dataset.theme = t;
+      var l = localStorage.getItem('wb-lang');
+      document.documentElement.lang = l === 'en' ? 'en' : 'zh-CN';
+    } catch (e) {}
+  })();
+</script>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead__inner">
+    <div class="masthead__title">
+      <h1><span class="h1-lead" data-i18n="app.h1">城市天气</span><span class="h1-tail" data-i18n="app.h1sub">数据工作台</span></h1>
+    </div>
+
+    <div class="masthead__side">
+      <dl class="masthead__meta">
+        <div><dt data-i18n="meta.source">数据源</dt><dd data-i18n="meta.source.v">Open-Meteo · ERA5</dd></div>
+        <div><dt data-i18n="meta.basis">口径</dt><dd data-i18n="meta.basis.v">再分析网格值</dd></div>
+        <div><dt data-i18n="meta.tz">时区</dt><dd data-i18n="meta.tz.v">Asia/Shanghai</dd></div>
+        <div><dt data-i18n="meta.lic">许可</dt><dd data-i18n="meta.lic.v">CC BY 4.0</dd></div>
+      </dl>
+      <div class="masthead__tools">
+        <button id="btn-theme" class="tool" type="button" aria-label="切换深浅色" title="切换深浅色">
+          <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+            <g class="i-sun">
+              <circle cx="12" cy="12" r="4.2"/>
+              <path d="M12 2.2v2.4M12 19.4v2.4M2.2 12h2.4M19.4 12h2.4M5 5l1.7 1.7M17.3 17.3L19 19M19 5l-1.7 1.7M6.7 17.3L5 19"/>
+            </g>
+            <path class="i-moon" d="M20.4 14.6A8.4 8.4 0 1 1 9.4 3.6a6.8 6.8 0 0 0 11 11z"/>
+          </svg>
+        </button>
+        <button id="btn-lang" class="tool" type="button" aria-label="切换语言" title="切换语言">中</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ① 选 ------------------------------------------------------------ -->
+  <section class="stage" id="stage-pick">
+    <div class="stage__head">
+      <span class="stage__num">①</span>
+      <h2 data-i18n="stage.pick">选</h2>
+    </div>
+
+    <div class="pick">
+      <div class="pick__left">
+        <div class="field">
+          <label class="field__label" data-i18n="field.presets">预置城市</label>
+          <div id="city-groups" class="groups"></div>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="city-search" data-i18n="field.search">搜索城市</label>
+          <div class="search">
+            <input id="city-search" type="text" data-i18n-ph="ph.search" placeholder="江门 / 佛山 / 东莞…" autocomplete="off" spellcheck="false">
+            <ul id="search-results" class="search__results" hidden></ul>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field__label"><span data-i18n="field.selected">已选</span> <em id="sel-count">0 / 5</em></label>
+          <div id="selected-chips" class="chips"></div>
+        </div>
+
+      </div>
+
+      <div class="pick__map">
+        <div class="field__label" data-i18n="field.map">地图点选</div>
+        <div class="mapwrap">
+          <div id="map" class="map"></div>
+          <button id="btn-map-reset" class="map-reset" type="button" data-i18n="btn.reset">复位视图</button>
+        </div>
+      </div>
+
+      <div class="pick__right">
+        <div class="field">
+          <label class="field__label" data-i18n="field.window">时间窗口</label>
+          <div class="segmented" id="seg-days">
+            <button data-days="7">7 天</button>
+            <button data-days="30" class="is-on">30 天</button>
+            <button data-days="90">90 天</button>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field__label" data-i18n="field.var">主图变量</label>
+          <div class="segmented segmented--col" id="seg-var">
+            <button data-var="tmean" class="is-on">日平均气温</button>
+            <button data-var="tmax">日最高气温</button>
+            <button data-var="tmin">日最低气温</button>
+            <button data-var="dtr">日较差</button>
+            <button data-var="prcp">降水量</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ② 抓 ------------------------------------------------------------ -->
+  <section class="stage" id="stage-fetch">
+    <div class="stage__head">
+      <span class="stage__num">②</span>
+      <h2 data-i18n="stage.fetch">抓</h2>
+    </div>
+
+    <div class="fetch">
+      <button id="btn-fetch" class="btn" disabled data-i18n="btn.fetch">抓取数据</button>
+      <div class="status" id="status" data-state="idle">
+        <span class="status__dot"></span>
+        <span class="status__text" id="status-text">未选择</span>
+        <span class="status__timer" id="status-timer"></span>
+      </div>
+      <button id="btn-force" class="btn btn--ghost" data-i18n="btn.force">强制重抓</button>
+    </div>
+  </section>
+
+  <!-- ③ 看 ------------------------------------------------------------ -->
+  <section class="stage" id="stage-read">
+    <div class="stage__head">
+      <span class="stage__num">③</span>
+      <h2 data-i18n="stage.read">看</h2>
+    </div>
+
+    <div class="empty" id="empty">
+      <p class="empty__big" data-i18n="empty.msg">选城市，然后按「抓取数据」</p>
+    </div>
+
+    <div id="read" hidden>
+      <div class="kpis" id="kpis"></div>
+
+      <figure class="panel panel--main">
+        <figcaption>
+          <h3 id="main-title">日平均气温</h3>
+          <p class="panel__meta" id="main-meta"></p>
+        </figcaption>
+        <div id="chart-main" class="chart chart--main"></div>
+        <p class="caption" id="main-caption"></p>
+      </figure>
+
+      <div class="grid3">
+        <figure class="panel">
+          <figcaption><h4 data-i18n="panel.dtr">日较差分布</h4><p class="panel__meta" data-i18n="panel.dtrMeta">最高 − 最低</p></figcaption>
+          <div id="chart-dtr" class="chart chart--sm"></div>
+        </figure>
+        <figure class="panel">
+          <figcaption><h4 data-i18n="panel.corr">气温相关矩阵</h4><p class="panel__meta" data-i18n="panel.corrMeta">Pearson r</p></figcaption>
+          <div id="chart-corr" class="chart chart--sm"></div>
+        </figure>
+        <figure class="panel">
+          <figcaption><h4 data-i18n="panel.prcp">累计降水</h4><p class="panel__meta" id="prcp-meta">30 天累计 · mm</p></figcaption>
+          <div id="chart-prcp" class="chart chart--sm"></div>
+        </figure>
+      </div>
+
+      <div class="panel">
+        <figcaption>
+          <h3 data-i18n="panel.table">分城市统计</h3>
+        </figcaption>
+        <div class="tablewrap"><table id="table"></table></div>
+      </div>
+
+      <div class="panel panel--prov">
+        <figcaption><h3 data-i18n="panel.prov">采集血缘</h3></figcaption>
+        <dl class="prov" id="prov"></dl>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <p data-i18n="foot.license">数据 © <a href="https://open-meteo.com/" target="_blank" rel="noreferrer">Open-Meteo.com</a> / ERA5 · CC BY 4.0 ·
+     再分析网格值，非气象站实测，适用于趋势与相对比较，不适用于单站极值认定。</p>
+  <p class="foot__mono" data-i18n="foot.mono">后端 <code>server.py</code> · 零依赖标准库 · 原始报文落盘于 <code>cache/raw/</code></p>
+</footer>
+
+<script src="assets/vendor/echarts.min.js"></script>
+<script src="assets/ui.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
