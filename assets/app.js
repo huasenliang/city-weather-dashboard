@@ -508,7 +508,7 @@ async function fetchBaseline(d) {
   try {
     const r = await fetch(`${API.baseline}?cities=${encodeURIComponent(names)}&days=${d.meta.days}`);
     const b = await r.json();
-    if (!b.values) return;
+    if (state.data !== d || !b.values) return;
     state.baseline = b;
     renderKpis(state.data);
     renderTable(state.data);
@@ -614,11 +614,11 @@ function renderKpis(d) {
       value: b
         ? `${avgAnom > 0 ? '+' : ''}${fmt(avgAnom)}<small>℃</small>`
         : `…<small>${T('kpi.calc')}</small>`,
-      sub: b
+      sub: maxAnom
         ? T('kpi.anomSub', { p: state.baseline.baseline_period, c: dn(maxAnom.name),
             v: `${maxAnom.v > 0 ? '+' : ''}${maxAnom.v}` })
         : T('kpi.anomSubNone'),
-      cls: b ? (avgAnom >= 0 ? 'kpi--warm' : 'kpi--cool') : '',
+      cls: maxAnom ? (avgAnom >= 0 ? 'kpi--warm' : 'kpi--cool') : '',
     },
   ];
 

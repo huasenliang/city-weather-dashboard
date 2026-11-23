@@ -143,6 +143,10 @@
     </div>
 
     <div id="read" hidden>
+      <div class="export-actions">
+        <button class="btn btn--ghost" data-export="csv" data-i18n="export.csv">下载逐日 CSV</button>
+        <button class="btn btn--ghost" data-export="report" data-i18n="export.report">下载实验报告（HTML）</button>
+      </div>
       <div class="kpis" id="kpis"></div>
 
       <figure class="panel panel--main">
@@ -151,6 +155,7 @@
           <p class="panel__meta" id="main-meta"></p>
         </figcaption>
         <div id="chart-main" class="chart chart--main"></div>
+          <button class="btn btn--ghost" data-export="main" data-i18n="export.png">下载图表 PNG</button>
         <p class="caption" id="main-caption"></p>
       </figure>
 
@@ -158,14 +163,17 @@
         <figure class="panel">
           <figcaption><h4 data-i18n="panel.dtr">日较差分布</h4><p class="panel__meta" data-i18n="panel.dtrMeta">最高 − 最低</p></figcaption>
           <div id="chart-dtr" class="chart chart--sm"></div>
+          <button class="btn btn--ghost" data-export="dtr" data-i18n="export.png">下载图表 PNG</button>
         </figure>
         <figure class="panel">
           <figcaption><h4 data-i18n="panel.corr">气温相关矩阵</h4><p class="panel__meta" data-i18n="panel.corrMeta">Pearson r</p></figcaption>
           <div id="chart-corr" class="chart chart--sm"></div>
+          <button class="btn btn--ghost" data-export="corr" data-i18n="export.png">下载图表 PNG</button>
         </figure>
         <figure class="panel">
           <figcaption><h4 data-i18n="panel.prcp">累计降水</h4><p class="panel__meta" id="prcp-meta">30 天累计 · mm</p></figcaption>
           <div id="chart-prcp" class="chart chart--sm"></div>
+          <button class="btn btn--ghost" data-export="prcp" data-i18n="export.png">下载图表 PNG</button>
         </figure>
       </div>
 
@@ -194,5 +202,6 @@
 <script src="assets/vendor/echarts.min.js"></script>
 <script src="assets/ui.js"></script>
 <script src="assets/app.js"></script>
+<script src="assets/export.js"></script>
 </body>
 </html>

@@ -38,6 +38,7 @@ const WB = (() => {
       'vartitle.prcp': '逐日降水量',
 
       /* ② */
+      'export.csv': '下载逐日 CSV', 'export.report': '下载实验报告（HTML）', 'export.png': '下载图表 PNG',
       'btn.fetch': '抓取数据', 'btn.force': '强制重抓',
       'status.none': '未选择',
       'status.max': '最多同时对比 5 个城市，先取消一个',
@@ -130,6 +131,7 @@ const WB = (() => {
       'vartitle.tmin': 'Daily minimum temperature', 'vartitle.dtr': 'Diurnal range (max − min)',
       'vartitle.prcp': 'Daily precipitation',
 
+      'export.csv': 'Download daily CSV', 'export.report': 'Download report (HTML)', 'export.png': 'Download chart PNG',
       'btn.fetch': 'Fetch data', 'btn.force': 'Force refetch',
       'status.none': 'No city',
       'status.max': 'Up to 5 cities — remove one first',
